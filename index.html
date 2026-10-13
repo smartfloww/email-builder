@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SmartFlowy Email Builder</title>
+<style>
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --border: #E6E1D6;
+    --ink: #2B2A28;
+    --ink-soft: #827D70;
+    --accent: #38507A;
+    --accent-hover: #2C3F60;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E9EDF4;
+    --field: #FBFAF7;
+    --amber: #AE6A2E;
+    --amber-soft: #F7ECDD;
+    --shadow: 0 1px 2px rgba(43, 42, 40, 0.04), 0 8px 24px rgba(43, 42, 40, 0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17161B;
+      --surface: #201F25;
+      --border: #34323A;
+      --ink: #EDEBE4;
+      --ink-soft: #A39E93;
+      --accent: #7E97C4;
+      --accent-hover: #93AAD4;
+      --accent-ink: #15181F;
+      --accent-soft: #232A38;
+      --field: #1B1A20;
+      --amber: #D99A5F;
+      --amber-soft: #2B2219;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17161B;
+    --surface: #201F25;
+    --border: #34323A;
+    --ink: #EDEBE4;
+    --ink-soft: #A39E93;
+    --accent: #7E97C4;
+    --accent-hover: #93AAD4;
+    --accent-ink: #15181F;
+    --accent-soft: #232A38;
+    --field: #1B1A20;
+    --amber: #D99A5F;
+    --amber-soft: #2B2219;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 36px 20px 64px; }
+
+  header { margin-bottom: 26px; }
+  .eyebrow {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 6px;
+  }
+  header h1 { font-size: 1.4rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--ink-soft); font-size: 0.92rem; }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+  @media (min-width: 900px) {
+    .grid { grid-template-columns: 380px 1fr; align-items: start; }
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+  }
+  .section { margin-bottom: 22px; }
+  .section:last-child { margin-bottom: 0; }
+  .section-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--ink-soft); margin-bottom: 9px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--field);
+    color: var(--ink);
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input[type="text"]::placeholder { color: var(--ink-soft); opacity: 0.65; }
+  input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .toggle2 {
+    display: grid; grid-template-columns: 1fr 1fr;
+    background: var(--field);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 3px;
+  }
+  .toggle2 button {
+    font-family: inherit; font-size: 0.86rem; font-weight: 600;
+    padding: 9px 8px; border: none; border-radius: 7px;
+    background: transparent; color: var(--ink-soft); cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .toggle2 button.active { background: var(--accent); color: var(--accent-ink); }
+
+  .stage-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .stage-row button {
+    font-family: inherit; font-size: 0.82rem; font-weight: 600;
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: 999px;
+    background: var(--field); color: var(--ink); cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .stage-row button.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .stage-row button:hover:not(.active) { border-color: var(--accent); }
+
+  .stack { display: flex; flex-direction: column; gap: 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .opt {
+    font-family: inherit;
+    font-size: 0.88rem;
+    color: var(--ink);
+    background: var(--field);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 10px 12px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .opt:hover { border-color: var(--accent); }
+  .opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .opt.active {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .opt small { display: block; font-weight: 400; color: var(--ink-soft); font-size: 0.78rem; margin-top: 2px; }
+  .opt.active small { color: var(--accent); opacity: 0.85; }
+  .chips .opt { border-radius: 999px; padding: 7px 13px; font-size: 0.84rem; }
+
+  .hidden { display: none !important; }
+
+  .note-box {
+    font-size: 0.8rem; color: var(--amber); background: var(--amber-soft);
+    border-radius: 8px; padding: 9px 11px; margin-top: 2px;
+  }
+
+  .output-head {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; margin-bottom: 18px; flex-wrap: wrap;
+  }
+  .output-head h2 { font-size: 1.05rem; margin: 0; }
+  .output-sub { font-size: 0.8rem; color: var(--ink-soft); margin-top: 2px; }
+
+  .copy-btn {
+    padding: 7px 14px; border: 1px solid var(--accent); background: var(--surface); color: var(--accent);
+    border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: background 0.15s, color 0.15s; white-space: nowrap;
+  }
+  .copy-btn:hover { background: var(--accent-soft); }
+  .copy-btn.copied { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .copy-btn.solid { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); padding: 9px 18px; font-size: 0.9rem; }
+  .copy-btn.solid:hover { background: var(--accent-hover); }
+  .copy-btn.solid.copied { background: var(--accent-soft); color: var(--accent); }
+
+  .block-head {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 10px; margin-bottom: 8px;
+  }
+  .block-head span.k { color: var(--ink-soft); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .subject-line {
+    font-size: 0.95rem; padding: 12px 14px;
+    background: var(--field); border: 1px solid var(--border); border-radius: 9px;
+  }
+
+  .output-block { margin-bottom: 16px; }
+  .output-block:last-child { margin-bottom: 0; }
+
+  #bodyOut {
+    white-space: pre-wrap;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    padding: 20px;
+    background: var(--field);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    min-height: 240px;
+  }
+
+  .wc { margin-top: 10px; font-size: 0.78rem; color: var(--ink-soft); text-align: right; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">SmartFlowy Solutions</p>
+    <h1>Email Builder</h1>
+    <p>Pick the clinic's situation, fill in a few details, copy the email.</p>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="section">
+        <span class="section-label">Clinic name</span>
+        <input type="text" id="bizName" placeholder="e.g. Smile Dental Care">
+      </div>
+
+      <div class="section">
+        <span class="section-label">Situation</span>
+        <div class="toggle2" id="category">
+          <button class="active" data-val="nowebsite">No website</button>
+          <button data-val="outdated">Outdated website</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <span class="section-label">Stage</span>
+        <div class="stage-row" id="stage">
+          <button class="active" data-val="initial">Initial</button>
+          <button data-val="f1">Follow-up 1</button>
+          <button data-val="f2">Follow-up 2</button>
+          <button data-val="f3">Follow-up 3</button>
+        </div>
+      </div>
+
+      <div class="section" id="detailField">
+        <span class="section-label">Something you liked</span>
+        <div class="chips" id="detail">
+          <button class="opt active" data-val="smile">Smile makeover work</button>
+          <button class="opt" data-val="implant">Implant work</button>
+          <button class="opt" data-val="whitening">Whitening results</button>
+          <button class="opt" data-val="welcome">How welcoming it feels</button>
+          <button class="opt" data-val="reviews">Patient reviews</button>
+        </div>
+      </div>
+
+      <div class="section hidden" id="issueFixField">
+        <span class="section-label">Issue / fix</span>
+        <div class="stack" id="issueFix">
+          <button class="opt active" data-val="1">Not mobile-friendly<small>Covers most clinics</small></button>
+          <button class="opt" data-val="2">Dated design<small>Doesn't match the quality of your work</small></button>
+          <button class="opt" data-val="3">No online booking<small>Still call or message only</small></button>
+          <button class="opt" data-val="4">Hard to find on Google<small>Doesn't come up in local search</small></button>
+          <button class="opt" data-val="5">No services info<small>Patients call just to ask what you offer</small></button>
+        </div>
+      </div>
+
+      <div class="section hidden" id="fuNote">
+        <div class="note-box">Follow-ups restate the problem and the offer in full, but don't repeat the specific fix again.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="output-head">
+        <div>
+          <h2>Ready to send</h2>
+          <div class="output-sub" id="stageLabel">No website · Initial</div>
+        </div>
+        <button class="copy-btn solid" id="copyAllBtn">Copy both</button>
+      </div>
+
+      <div class="output-block">
+        <div class="block-head">
+          <span class="k">Subject</span>
+          <button class="copy-btn" id="copySubjectBtn">Copy subject</button>
+        </div>
+        <div class="subject-line" id="subjectOut"></div>
+      </div>
+
+      <div class="output-block">
+        <div class="block-head">
+          <span class="k">Body</span>
+          <button class="copy-btn" id="copyBodyBtn">Copy body</button>
+        </div>
+        <div id="bodyOut"></div>
+      </div>
+
+      <div class="wc" id="wcOut"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PORTFOLIO = "smartflowysolution.com";
+const STOP_LINE = "Or, say stop and I won't message again.";
+
+const detailPhrases = {
+  smile: "your smile makeover work",
+  implant: "your implant work",
+  whitening: "your whitening results",
+  welcome: "how welcoming your clinic feels",
+  reviews: "your patient reviews"
+};
+
+const issueFixPairs = {
+  1: { issue: "it's hard to use on a phone, where most patients look", fix: "making it mobile-friendly with online booking" },
+  2: { issue: "the design doesn't match the quality of your work", fix: "giving it a modern refresh" },
+  3: { issue: "patients still have to call or message to book", fix: "adding online booking" },
+  4: { issue: "it's hard to find when people search for a dentist nearby", fix: "helping you show up in local Google searches" },
+  5: { issue: "patients can't easily see which treatments you offer", fix: "adding a clear services page" }
+};
+
+let state = { category: "nowebsite", stage: "initial", detail: "smile", issueFix: "1" };
+
+function build() {
+  const name = document.getElementById('bizName').value.trim() || "[Clinic Name]";
+  const detail = detailPhrases[state.detail];
+  const pair = issueFixPairs[state.issueFix];
+  let subject, body;
+
+  if (state.category === "nowebsite") {
+    if (state.stage === "initial") {
+      subject = `A quick idea for ${name}`;
+      body = `Hi,
+
+I came across ${name} and was impressed by ${detail}. I couldn't find a website where new patients can see your services and book an appointment.
+
+We build simple, mobile-friendly websites for dental clinics, connected to online booking.
+
+I'd like to make you a free 3-page sample website, no cost, no obligation.
+
+See our work: ${PORTFOLIO}
+
+Just reply "yes" and we'll send it within 24 hours. ${STOP_LINE}
+
+Cathy
+SmartFlowy Solutions`;
+    } else if (state.stage === "f1") {
+      subject = `Following up on ${name}`;
+      body = `Hi,
+
+New patients often check a clinic's website before they call. I'd like to make ${name} a free 3-page sample site, no cost, no obligation.
+
+See our work: ${PORTFOLIO}
+
+Just reply "yes" and we'll send it within 24 hours. ${STOP_LINE}
+
+Cathy
+SmartFlowy Solutions`;
+    } else if (state.stage === "f2") {
+      subject = `Online booking for ${name}?`;
+      body = `Hi,
+
+A simple site gives ${name} one place to show your services and let patients book online. The free 3-page sample is still available.
+
+See our work: ${PORTFOLIO}
+
+Just reply "yes" and we'll send it within 24 hours. ${STOP_LINE}
+
+Cathy
+SmartFlowy Solutions`;
+    } else {
+      subject = `Should I close this out?`;
+      body = `Hi,
+
+This is my last note. The free 3-page website sample for ${name} is still open, no cost, no obligation. If you'd like it, just reply "yes" anytime. ${STOP_LINE}
+
+See our work: ${PORTFOLIO}
+
+Cathy
+SmartFlowy Solutions`;
+    }
+  } else {
+    if (state.stage === "initial") {
+      subject = `A quick idea for ${name}`;
+      body = `Hi,
+
+I looked at ${name}'s website and noticed ${pair.issue}.
+
+We help dental clinics fix exactly that: ${pair.fix}.
+
+I'd like to make you a free 3-page sample of a refreshed site, no cost, no obligation.
+
+See our work: ${PORTFOLIO}
+
+Just reply "yes" and we'll send it within 24 hours. ${STOP_LINE}
+
+Cathy
+SmartFlowy Solutions`;
+    } else if (state.stage === "f1") {
+      subject = `Following up on ${name}`;
+      body = `Hi,
+
+A few days ago I mentioned something on ${name}'s website that may be costing you new patients, especially people trying to book from their phone.
+
+We build simple websites for dental clinics so patients can find you and book online without calling.
+
+I'd like to put together a free 3-page sample for ${name}, no cost, no obligation.
+
+See our work: ${PORTFOLIO}
+
+Just reply "yes" and we'll send it within 24 hours. ${STOP_LINE}
+
+Cathy
+SmartFlowy Solutions`;
+    } else if (state.stage === "f2") {
+      subject = `Online booking for ${name}?`;
+      body = `Hi,
+
+Checking back in — I still think there's an easy win on ${name}'s website that could be turning patients away before they book.
+
+We build simple websites for dental clinics so patients can find you and book online without calling.
+
+I'd still like to put together a free 3-page sample for ${name}, no cost, no obligation.
+
+See our work: ${PORTFOLIO}
+
+Just reply "yes" and we'll send it within 24 hours. ${STOP_LINE}
+
+Cathy
+SmartFlowy Solutions`;
+    } else {
+      subject = `Should I close this out?`;
+      body = `Hi,
+
+This is my last note on ${name}'s website. I still think a quick fix there could help you book more patients, and the free 3-page sample is still open, no cost, no obligation.
+
+See our work: ${PORTFOLIO}
+
+Just reply "yes" anytime. ${STOP_LINE}
+
+Cathy
+SmartFlowy Solutions`;
+    }
+  }
+
+  document.getElementById('subjectOut').textContent = subject;
+  document.getElementById('bodyOut').textContent = body;
+
+  const catLabel = state.category === "nowebsite" ? "No website" : "Outdated website";
+  const stageLabels = { initial: "Initial", f1: "Follow-up 1", f2: "Follow-up 2", f3: "Follow-up 3" };
+  document.getElementById('stageLabel').textContent = `${catLabel} · ${stageLabels[state.stage]}`;
+
+  const words = body.trim().split(/\s+/).length;
+  document.getElementById('wcOut').textContent = `${words} words`;
+}
+
+function refreshVisibility() {
+  const showDetail = state.category === "nowebsite" && state.stage === "initial";
+  const showIssueFix = state.category === "outdated" && state.stage === "initial";
+  const showFuNote = state.category === "outdated" && state.stage !== "initial";
+  document.getElementById('detailField').classList.toggle('hidden', !showDetail);
+  document.getElementById('issueFixField').classList.toggle('hidden', !showIssueFix);
+  document.getElementById('fuNote').classList.toggle('hidden', !showFuNote);
+}
+
+function wireGroup(id, stateKey) {
+  const group = document.getElementById(id);
+  group.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    [...group.children].forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state[stateKey] = btn.dataset.val;
+    refreshVisibility();
+    build();
+  });
+}
+
+wireGroup('category', 'category');
+wireGroup('stage', 'stage');
+wireGroup('detail', 'detail');
+wireGroup('issueFix', 'issueFix');
+
+document.getElementById('bizName').addEventListener('input', build);
+
+function legacyCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.top = '-9999px';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+  document.body.removeChild(ta);
+  return ok;
+}
+
+function selectBodyText() {
+  const node = document.getElementById('bodyOut');
+  const range = document.createRange();
+  range.selectNodeContents(node);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (err) { /* fall through */ }
+  return legacyCopy(text);
+}
+
+function flashButton(btn, defaultLabel, copiedLabel) {
+  btn.textContent = copiedLabel;
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = defaultLabel; btn.classList.remove('copied'); }, 1400);
+}
+
+async function handleCopy(btn, defaultLabel, copiedLabel, text, selectFallback) {
+  const ok = await copyText(text);
+  if (ok) {
+    flashButton(btn, defaultLabel, copiedLabel);
+  } else {
+    if (selectFallback) selectFallback();
+    const original = btn.textContent;
+    btn.textContent = "Select & press Ctrl/Cmd+C";
+    setTimeout(() => { btn.textContent = original; }, 2200);
+  }
+}
+
+document.getElementById('copySubjectBtn').addEventListener('click', (e) => {
+  const subject = document.getElementById('subjectOut').textContent;
+  handleCopy(e.currentTarget, "Copy subject", "Copied", subject, () => {
+    const node = document.getElementById('subjectOut');
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  });
+});
+
+document.getElementById('copyBodyBtn').addEventListener('click', (e) => {
+  const body = document.getElementById('bodyOut').textContent;
+  handleCopy(e.currentTarget, "Copy body", "Copied", body, selectBodyText);
+});
+
+document.getElementById('copyAllBtn').addEventListener('click', (e) => {
+  const subject = document.getElementById('subjectOut').textContent;
+  const body = document.getElementById('bodyOut').textContent;
+  const full = `Subject: ${subject}\n\n${body}`;
+  handleCopy(e.currentTarget, "Copy both", "Copied", full, selectBodyText);
+});
+
+refreshVisibility();
+build();
+</script>
+</body>
+</html>
